@@ -5,6 +5,7 @@ import (
 	"github.com/go-playground/validator/v10"
 	"github.com/gofiber/fiber/v2"
 	"go.mongodb.org/mongo-driver/bson"
+	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
 	"golang.org/x/crypto/bcrypt"
 	"neocognito-backend/models"
@@ -83,13 +84,63 @@ func CreateUser(c *fiber.Ctx) error {
 			"message": "Server Error"})
 	}
 	if err != nil {
-		return c.Status(500).SendString(err.Error())
+		return c.Status(fiber.StatusInternalServerError).SendString(err.Error())
 	}
-	token := utils.JwtGenerate(u.Email, *insertionResult, u.Role)
-	fmt.Println(token)
+	token, err := utils.JwtGenerate(*u, *insertionResult)
+	if err != nil {
+		fmt.Println(err.Error())
+		return c.Status(fiber.StatusInternalServerError).SendString(err.Error())
+	}
 	return c.Status(fiber.StatusCreated).JSON(fiber.Map{
 		"status":  "success",
 		"message": "User Created",
+		"token":   token,
 		"_id":     insertionResult.InsertedID,
 		"user":    u})
+}
+func LoginUser(c *fiber.Ctx) error {
+	type loginModel struct {
+		Email    string `json:"email"`
+		Password string `json:"password"`
+	}
+	loginObject := new(loginModel)
+	err := c.BodyParser(&loginObject)
+	if err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"status": "error", "error": err.Error()})
+	}
+	var userFromDB models.User
+	err = utils.Mg.Db.Collection("users").FindOne(c.Context(), bson.M{"email": loginObject.Email}).Decode(&userFromDB)
+	if err != nil {
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"status": "error", "error": err.Error()})
+	}
+	err = bcrypt.CompareHashAndPassword([]byte(userFromDB.Password), []byte(loginObject.Password))
+	if err != nil {
+		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{"status": "error", "message": "invalid credentials"})
+	}
+	//TODO parameter type mongo.InsertOneResult is a workaround
+	token, err := utils.JwtGenerate(userFromDB, mongo.InsertOneResult{InsertedID: userFromDB.ID})
+	if err != nil {
+		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{"status": "error", "message": "invalid credentials"})
+	}
+	if token == "" {
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"status": "error", "message": "internal server error"})
+	}
+
+	return c.Status(fiber.StatusOK).JSON(fiber.Map{"status": "success", "token": token})
+
+}
+func GetUserDetails(c *fiber.Ctx) error {
+	fmt.Println("Authorization Passed")
+	fmt.Println(c.Params("id"))
+	var userFromDB models.User
+	idObject, err := primitive.ObjectIDFromHex(c.Params("id"))
+	if err != nil {
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"status": "error", "error": err.Error()})
+	}
+	err = utils.Mg.Db.Collection("users").FindOne(c.Context(), bson.M{"_id": idObject}).Decode(&userFromDB)
+	if err != nil {
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"status": "error", "error": err.Error()})
+	}
+	return c.Status(fiber.StatusOK).JSON(fiber.Map{"status": "success", "user": userFromDB})
+
 }

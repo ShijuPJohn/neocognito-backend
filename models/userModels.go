@@ -4,9 +4,9 @@ import "time"
 
 type User struct {
 	ID                string              `json:"id,omitempty" bson:"_id,omitempty"`
-	Name              string              `json:"name" validate:"required" bson:"name"`
+	Name              string              `json:"name" validate:"required,min=2,max=128" bson:"name"`
 	Email             string              `json:"email" validate:"required,email" bson:"email"`
-	Password          string              `json:"password" validate:"required" bson:"password"`
+	Password          string              `json:"password" validate:"required,min=8,max=64" bson:"password"`
 	Role              string              `json:"role" bson:"role"`
 	CreatedAt         time.Time           `json:"createdAt" bson:"createdAt"`
 	UpdatedAt         time.Time           `json:"updatedAt" bson:"updatedAt"`
