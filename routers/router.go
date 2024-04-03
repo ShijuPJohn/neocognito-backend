@@ -23,5 +23,6 @@ func SetupRoutes(app *fiber.App) {
 	//// Questions
 	questions := api.Group("/questions")
 	questions.Post("/", middlewares.Protected(), controllers.CreateQuestion)
+	questions.Get("/", controllers.GetQuestions)
 
 }
