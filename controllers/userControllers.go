@@ -84,9 +84,15 @@ func CreateUser(c *fiber.Ctx) error {
 			"message": "Server Error"})
 	}
 	if err != nil {
+		return c.Status(fiber.StatusInternalServerError).
+			SendString(err.Error())
+	}
+	insertedID, ok := insertionResult.InsertedID.(primitive.ObjectID)
+	if !ok {
+		fmt.Println("Failed to convert inserted ID to ObjectID")
 		return c.Status(fiber.StatusInternalServerError).SendString(err.Error())
 	}
-	token, err := utils.JwtGenerate(*u, *insertionResult)
+	token, err := utils.JwtGenerate(*u, insertedID.Hex())
 	if err != nil {
 		fmt.Println(err.Error())
 		return c.Status(fiber.StatusInternalServerError).SendString(err.Error())
@@ -118,7 +124,7 @@ func LoginUser(c *fiber.Ctx) error {
 		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{"status": "error", "message": "invalid credentials"})
 	}
 	//TODO parameter type mongo.InsertOneResult is a workaround
-	token, err := utils.JwtGenerate(userFromDB, mongo.InsertOneResult{InsertedID: userFromDB.ID})
+	token, err := utils.JwtGenerate(userFromDB, userFromDB.ID)
 	if err != nil {
 		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{"status": "error", "message": "invalid credentials"})
 	}

@@ -3,6 +3,7 @@ package controllers
 import (
 	"github.com/go-playground/validator/v10"
 	"github.com/gofiber/fiber/v2"
+	"github.com/golang-jwt/jwt/v4"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo/options"
@@ -14,6 +15,8 @@ import (
 )
 
 func CreateQuestion(c *fiber.Ctx) error {
+	user := c.Locals("user").(*jwt.Token)
+	claims := user.Claims.(jwt.MapClaims)
 	q := new(models.Question)
 	if err := c.BodyParser(q); err != nil {
 		return c.Status(400).SendString(err.Error())
@@ -28,6 +31,7 @@ func CreateQuestion(c *fiber.Ctx) error {
 	}
 	q.CreatedAt = time.Now()
 	q.EditedAt = time.Now()
+	q.CreatedById = claims["id"].(string)
 	insertionResult, err := utils.Mg.Db.Collection("questions").InsertOne(c.Context(), q)
 	if err != nil {
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
@@ -128,28 +132,7 @@ func DeleteQuestion(c *fiber.Ctx) error {
 
 	return c.Status(fiber.StatusOK).JSON(fiber.Map{"status": "success", "message": "Question deleted successfully"})
 }
-func CreateQuestionSet(c *fiber.Ctx) error {
-	q := new(models.QuestionSet)
-	if err := c.BodyParser(&q); err != nil {
-		return c.Status(400).SendString(err.Error())
-	}
-	validate := validator.New()
-	err := validate.Struct(q)
-	if err != nil {
-		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
-			"status":  "error",
-			"message": err.Error(),
-		})
-	}
-	insertionResult, err := utils.Mg.Db.Collection("question_set").InsertOne(c.Context(), q)
-	if err != nil {
-		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
-			"status":  "error",
-			"message": err.Error(),
-		})
-	}
-	return c.Status(fiber.StatusOK).JSON(fiber.Map{"status": "success", "question_set": q, "id": insertionResult.InsertedID})
-}
+
 func handleError(c *fiber.Ctx, statusCode int, errorMessage string) error {
 	return c.Status(statusCode).JSON(fiber.Map{
 		"status":  "error",
