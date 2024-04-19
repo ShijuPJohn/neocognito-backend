@@ -132,7 +132,30 @@ func DeleteQuestion(c *fiber.Ctx) error {
 
 	return c.Status(fiber.StatusOK).JSON(fiber.Map{"status": "success", "message": "Question deleted successfully"})
 }
+func GetQuestionByID(c *fiber.Ctx) error {
+	// Get the question ID from the request parameters
+	idParam := c.Params("id")
+	qID, err := primitive.ObjectIDFromHex(idParam)
+	if err != nil {
+		return handleError(c, fiber.StatusBadRequest, err.Error())
+	}
 
+	// Define a filter to find the question by its ID
+	filter := bson.M{"_id": qID}
+
+	// Find the question in the database
+	var question models.Question
+	err = utils.Mg.Db.Collection("questions").FindOne(c.Context(), filter).Decode(&question)
+	if err != nil {
+		if err.Error() == "mongo: no documents in result" {
+			return handleError(c, fiber.StatusNotFound, "Question not found")
+		}
+		return handleError(c, fiber.StatusInternalServerError, err.Error())
+	}
+
+	// Return the question
+	return c.Status(fiber.StatusOK).JSON(fiber.Map{"question": question})
+}
 func handleError(c *fiber.Ctx, statusCode int, errorMessage string) error {
 	return c.Status(statusCode).JSON(fiber.Map{
 		"status":  "error",

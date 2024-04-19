@@ -6,6 +6,7 @@ import (
 	"github.com/golang-jwt/jwt/v4"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
+	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
 	"neocognito-backend/models"
 	"neocognito-backend/utils"
@@ -117,4 +118,33 @@ func DeleteQuestionSet(c *fiber.Ctx) error {
 	}
 
 	return c.Status(fiber.StatusOK).JSON(fiber.Map{"status": "success", "message": "Question set deleted successfully"})
+}
+
+func GetQuestionSetByID(c *fiber.Ctx) error {
+	// Extract the ID from the request parameters
+	idParam := c.Params("id")
+
+	// Convert the ID string to ObjectID
+	qID, err := primitive.ObjectIDFromHex(idParam)
+	if err != nil {
+		return handleError(c, fiber.StatusBadRequest, err.Error())
+	}
+
+	// Define a filter to find the question set by ID
+	filter := bson.M{"_id": qID}
+
+	// Find the question set in the database
+	var questionSet models.QuestionSet
+	err = utils.Mg.Db.Collection("question_set").FindOne(c.Context(), filter).Decode(&questionSet)
+	if err != nil {
+		// If the question set is not found, return a 404 status code
+		if err == mongo.ErrNoDocuments {
+			return handleError(c, fiber.StatusNotFound, "Question set not found")
+		}
+		// If there's any other error, return a 500 status code
+		return handleError(c, fiber.StatusInternalServerError, err.Error())
+	}
+
+	// Return the question set as JSON response
+	return c.Status(fiber.StatusOK).JSON(fiber.Map{"question_set": questionSet})
 }
