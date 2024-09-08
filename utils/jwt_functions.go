@@ -6,7 +6,6 @@ import (
 	"time"
 )
 
-// JwtGenerate TODO parameter type mongo.InsertOneResult is a workaround
 func JwtGenerate(user models.User) (string, error) {
 	token := jwt.New(jwt.SigningMethodHS256)
 	claims := token.Claims.(jwt.MapClaims)

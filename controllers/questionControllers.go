@@ -1,10 +1,9 @@
 package controllers
 
 import (
-	"fmt"
 	"github.com/go-playground/validator/v10"
 	"github.com/gofiber/fiber/v2"
-	"github.com/golang-jwt/jwt/v4"
+	"github.com/golang-jwt/jwt/v5"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo/options"
@@ -36,7 +35,6 @@ func CreateQuestion(c *fiber.Ctx) error {
 	q.EditedAt = &currentTime
 	q.CreatedById = currentUserID
 	q.EditedByIds = []string{currentUserID}
-	fmt.Println(q.EditedByIds)
 	insertionResult, err := utils.Mg.Db.Collection("questions").InsertOne(c.Context(), q)
 	if err != nil {
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
