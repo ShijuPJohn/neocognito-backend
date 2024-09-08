@@ -10,6 +10,7 @@ import (
 	"golang.org/x/crypto/bcrypt"
 	"neocognito-backend/models"
 	"neocognito-backend/utils"
+	"time"
 )
 
 func Index(c *fiber.Ctx) error {
@@ -37,25 +38,6 @@ func CreateUser(c *fiber.Ctx) error {
 	if err := c.BodyParser(u); err != nil {
 		return c.Status(400).SendString(err.Error())
 	}
-	type ConfirmPasswordStruct struct {
-		ConfirmPassword string `json:"confirmPassword" validate:"required"`
-	}
-	confirmPassword := new(ConfirmPasswordStruct)
-	if err := c.BodyParser(confirmPassword); err != nil {
-		return c.Status(400).SendString(err.Error())
-	}
-	if confirmPassword.ConfirmPassword == "" {
-		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
-			"status":  "error",
-			"message": "Confirm Password not present",
-		})
-	}
-	if u.Password != confirmPassword.ConfirmPassword {
-		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
-			"status":  "error",
-			"message": "Passwords don't match",
-		})
-	}
 	validate := validator.New()
 	err := validate.Struct(u)
 	if err != nil {
@@ -64,6 +46,11 @@ func CreateUser(c *fiber.Ctx) error {
 			"message": err.Error(),
 		})
 	}
+	u.Role = "user"
+	currentTime := time.Now()
+	u.CreatedAt = &currentTime
+	u.UpdatedAt = &currentTime
+	u.PasswordChangedAt = &currentTime
 	hash, err := bcrypt.GenerateFromPassword([]byte(u.Password), bcrypt.DefaultCost)
 	if err != nil {
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
@@ -83,16 +70,12 @@ func CreateUser(c *fiber.Ctx) error {
 			"status":  "error",
 			"message": "Server Error"})
 	}
-	if err != nil {
-		return c.Status(fiber.StatusInternalServerError).
-			SendString(err.Error())
-	}
-	insertedID, ok := insertionResult.InsertedID.(primitive.ObjectID)
+	_, ok := insertionResult.InsertedID.(primitive.ObjectID)
 	if !ok {
 		fmt.Println("Failed to convert inserted ID to ObjectID")
 		return c.Status(fiber.StatusInternalServerError).SendString(err.Error())
 	}
-	token, err := utils.JwtGenerate(*u, insertedID.Hex())
+	token, err := utils.JwtGenerate(*u)
 	if err != nil {
 		fmt.Println(err.Error())
 		return c.Status(fiber.StatusInternalServerError).SendString(err.Error())
@@ -124,7 +107,7 @@ func LoginUser(c *fiber.Ctx) error {
 		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{"status": "error", "message": "invalid credentials"})
 	}
 	//TODO parameter type mongo.InsertOneResult is a workaround
-	token, err := utils.JwtGenerate(userFromDB, userFromDB.ID)
+	token, err := utils.JwtGenerate(userFromDB)
 	if err != nil {
 		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{"status": "error", "message": "invalid credentials"})
 	}
@@ -137,7 +120,7 @@ func LoginUser(c *fiber.Ctx) error {
 }
 func GetUserDetails(c *fiber.Ctx) error {
 	fmt.Println("Authorization Passed")
-	fmt.Println(c.Params("id"))
+	fmt.Println(c.Params("user"))
 	var userFromDB models.User
 	idObject, err := primitive.ObjectIDFromHex(c.Params("id"))
 	if err != nil {

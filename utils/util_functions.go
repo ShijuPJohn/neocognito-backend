@@ -9,6 +9,7 @@ import (
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
 	"log"
+	"os"
 	"strings"
 )
 
@@ -60,8 +61,13 @@ func MongoDBConnect() (error, func()) {
 	fmt.Println("Connected to MongoDB cloud")
 	return nil, deferFunc
 }
+
 func getMongoURLandPopulateSecretString() string {
-	name := "projects/1037996227658/secrets/blog_secrets/versions/5"
+	if os.Getenv("ENV") == "DEV" {
+		Secret = os.Getenv("JWT_S")
+		return os.Getenv("M_URI")
+	}
+	name := "projects/1037996227658/secrets/quizapp_s/versions/4"
 	ctx := context.Background()
 	client, err := secretmanager.NewClient(ctx)
 	if err != nil {

@@ -5,60 +5,52 @@ import (
 )
 
 type Question struct {
-	ID       string `json:"id,omitempty" bson:"_id,omitempty"`
-	Question string `json:"question,omitempty" bson:"question" validate:"required"`
-	//Category       string    `json:"category,omitempty" bson:"category" validate:"required"`
-	Subject        string    `json:"subject,omitempty" bson:"subject" validate:"required"`
-	Tags           []string  `json:"tags,omitempty" bson:"tags"`
-	Exam           string    `json:"exam,omitempty" bson:"exam"`
-	Language       string    `json:"language,omitempty" bson:"language" validate:"required"`
-	Difficulty     int       `json:"difficulty,omitempty" bson:"difficulty"`
-	QuestionType   string    `json:"questionType,omitempty" bson:"questionType" validate:"oneof=m-choice m-select numeric"`
-	Options        []string  `json:"options,omitempty" bson:"options" validate:"required"`
-	CorrectOptions int       `json:"correctOptions,omitempty" bson:"correctOptions" validate:"required"`
-	Explanation    string    `json:"explanation,omitempty" bson:"explanation"`
-	CreatedAt      time.Time `json:"createdAt,omitempty"`
-	EditedAt       time.Time `json:"editedAt,omitempty"`
-	CreatedById    string    `json:"createdBy,omitempty" bson:"createdBy,omitempty"`
-	EditedByIds    []string  `json:"editedBy,omitempty" bson:"editedBy,omitempty"`
+	ID             string     `json:"id,omitempty" bson:"_id,omitempty"`
+	Question       string     `json:"question,omitempty" bson:"question" validate:"required"`
+	Subject        string     `json:"subject,omitempty" bson:"subject" validate:"required"`
+	Tags           []string   `json:"tags,omitempty" bson:"tags"`
+	Exam           string     `json:"exam,omitempty" bson:"exam"`
+	Language       string     `json:"language,omitempty" bson:"language" validate:"required"`
+	Difficulty     int        `json:"difficulty,omitempty" bson:"difficulty" validate:"oneof=1 2 3 4 5"`
+	QuestionType   string     `json:"question_type,omitempty" bson:"question_type" validate:"oneof=m-choice m-select numeric"`
+	Options        []string   `json:"options,omitempty" bson:"options" validate:"required"`
+	CorrectOptions []int      `json:"correct_options,omitempty" bson:"correct_options" validate:"required"`
+	Explanation    string     `json:"explanation,omitempty" bson:"explanation"`
+	CreatedAt      *time.Time `json:"created_at,omitempty" bson:"created_at"`
+	EditedAt       *time.Time `json:"edited_at,omitempty" bson:"edited_at"`
+	CreatedById    string     `json:"created_by,omitempty" bson:"created_by,omitempty"`
+	EditedByIds    []string   `json:"edited_by,omitempty" bson:"edited_by,omitempty"`
 }
 
 type QuestionSet struct {
-	ID            string    `json:"id" bson:"_id,omitempty"`
-	Name          string    `json:"name" bson:"name"`
-	Questions     []string  `json:"questions" bson:"questions" validate:""`
-	Mode          string    `json:"mode,omitempty" bson:"mode" validate:"required,oneof=practice exam timed"`
-	Subject       string    `json:"subject,omitempty" bson:"subject" validate:"required"`
-	Tags          []string  `json:"tags,omitempty" bson:"tags" validate:"required"`
-	Exam          string    `json:"exam,omitempty" bson:"exam"`
-	Language      string    `json:"language,omitempty" bson:"language" validate:"required"`
-	TimeDuration  string    `json:"time,omitempty" bson:"time" validate:""`
-	Difficulty    int       `json:"difficulty,omitempty" bson:"difficulty"`
-	Description   string    `json:"explanation,omitempty" bson:"explanation"`
-	CreatedAt     time.Time `json:"createdAt,omitempty"`
-	EditedAt      time.Time `json:"editedAt,omitempty"`
-	CreatedById   string    `json:"createdBy,omitempty" bson:"createdBy,omitempty"`
-	EditedByIds   []string  `json:"editedBy,omitempty" bson:"editedBy,omitempty"`
-	TotalAttempts int       `json:"totalAttempts,omitempty" bson:"totalAttempts"`
-	MarksObtained []int     `json:"marksObtained,omitempty" bson:"marksObtained"`
+	ID                     string             `json:"id" bson:"_id,omitempty"`
+	Name                   string             `json:"name" bson:"name"`
+	QuestionsIDsAndAnswers []map[string][]int `json:"all_question_ids,omitempty" bson:"all_question_ids" validate:"required"`
+	Subject                string             `json:"subject,omitempty" bson:"subject" validate:"required"`
+	Tags                   []string           `json:"tags,omitempty" bson:"tags" validate:"required"`
+	Exam                   string             `json:"exam,omitempty" bson:"exam"`
+	TimeDuration           string             `json:"time,omitempty" bson:"time" validate:""`
+	Description            string             `json:"explanation,omitempty" bson:"explanation"`
+	CreatedAt              time.Time          `json:"created_at,omitempty" bson:"created_at"`
+	EditedAt               time.Time          `json:"edited_at,omitempty" bson:"edited_at"`
+	CreatedById            string             `json:"created_by,omitempty" bson:"created_by,omitempty"`
+	EditedByIds            []string           `json:"edited_by,omitempty" bson:"edited_by,omitempty"`
 }
 
-type QTest struct {
-	ID                 string           `json:"id" bson:"_id,omitempty"`
-	Finished           bool             `json:"finished" bson:"finished"`
-	Started            bool             `json:"started" bson:"started"`
-	Name               string           `json:"name" bson:"name"`
-	Tags               []string         `json:"tags" bson:"tags"`
-	QuestionSetId      string           `json:"questionSetId,omitempty" bson:"questionSetId" validate:"required"`
-	TakenById          string           `json:"takenById,omitempty" bson:"takenById" validate:"required"`
-	NTotalQuestions    int              `json:"nTotalQuestions,omitempty" bson:"nTotalQuestions" validate:"required"`
-	AllQuestionsIDs    map[string][]int `json:"allQuestionsId,omitempty" bson:"allQuestionsId" validate:"required"`
-	CurrentQuestionNum int              `json:"currentQuestionNum,omitempty" bson:"currentQuestionNum" validate:"required"`
-	QuestionIDsOrdered []string         `json:"questionIDsOrdered,omitempty" bson:"questionIDsOrdered" validate:"required"`
-	//AnsweredQuestionsIDs []string       `json:"answeredQuestionsId,omitempty" bson:"answeredQuestionsId" validate:"required"`
-	//NTotalAnswered       int            `json:"nTotalAnswered,omitempty" bson:"nTotalAnswered" validate:"required"`
-	NCorrectlyAnswered int       `json:"nCorrectlyAnswered,omitempty" bson:"nCorrectlyAnswered" validate:""`
-	Rank               int       `json:"rank,omitempty" bson:"rank" validate:""`
-	TakenAtTime        time.Time `json:"takenAt,omitempty" bson:"takenAt"`
-	Mode               string    `json:"mode,omitempty" bson:"mode" validate:"oneof=practice exam timed-practice"`
+type TestSession struct {
+	ID                     string             `json:"id" bson:"_id,omitempty"`
+	Finished               bool               `json:"finished" bson:"finished"`
+	Started                bool               `json:"started" bson:"started"`
+	Name                   string             `json:"name" bson:"name"`
+	Tags                   []string           `json:"tags" bson:"tags"`
+	QuestionSetId          string             `json:"question_set_id,omitempty" bson:"question_set_id" validate:"required"`
+	TakenById              string             `json:"taken_by_id,omitempty" bson:"taken_by_id" validate:"required"`
+	QuestionsIDsAndAnswers []map[string][]int `json:"allQuestionsId,omitempty" bson:"allQuestionsId" validate:"required"`
+	SelectedAnswers        [][]int            `json:"answered,omitempty" bson:"answered"`
+	CurrentQuestionNum     int                `json:"currentQuestionNum,omitempty" bson:"currentQuestionNum" validate:"required"`
+	QuestionIDsOrdered     []string           `json:"questionIDsOrdered,omitempty" bson:"questionIDsOrdered" validate:"required"`
+	NCorrectlyAnswered     int                `json:"nCorrectlyAnswered,omitempty" bson:"nCorrectlyAnswered" validate:""`
+	StartedTime            time.Time          `json:"started_time,omitempty" bson:"started_timet"`
+	FinishedTime           time.Time          `json:"finished_time,omitempty" bson:"finished_time"`
+	Mode                   string             `json:"mode,omitempty" bson:"mode" validate:"oneof=practice exam timed-practice"`
 }
