@@ -26,6 +26,8 @@ type QuestionSet struct {
 	ID                     string             `json:"id" bson:"_id,omitempty"`
 	Name                   string             `json:"name" bson:"name"`
 	QuestionsIDsAndAnswers []map[string][]int `json:"all_question_ids,omitempty" bson:"all_question_ids" validate:"required"`
+	QIDList                []string           `json:"qid_list,omitempty" bson:"qid_list" validate:"required"`
+	CorrectAnswerList      [][]int            `json:"correct_answer_list,omitempty" bson:"correct_answer_list" validate:"required"`
 	Subject                string             `json:"subject,omitempty" bson:"subject" validate:"required"`
 	Tags                   []string           `json:"tags,omitempty" bson:"tags" validate:"required"`
 	Exam                   string             `json:"exam,omitempty" bson:"exam"`
@@ -38,19 +40,22 @@ type QuestionSet struct {
 }
 
 type TestSession struct {
-	ID                     string             `json:"id" bson:"_id,omitempty"`
-	Finished               bool               `json:"finished" bson:"finished"`
-	Started                bool               `json:"started" bson:"started"`
-	Name                   string             `json:"name" bson:"name"`
-	Tags                   []string           `json:"tags" bson:"tags"`
-	QuestionSetId          string             `json:"question_set_id,omitempty" bson:"question_set_id" validate:"required"`
-	TakenById              string             `json:"taken_by_id,omitempty" bson:"taken_by_id" validate:"required"`
-	QuestionsIDsAndAnswers []map[string][]int `json:"allQuestionsId,omitempty" bson:"allQuestionsId" validate:"required"`
-	SelectedAnswers        [][]int            `json:"answered,omitempty" bson:"answered"`
-	CurrentQuestionNum     int                `json:"currentQuestionNum,omitempty" bson:"currentQuestionNum" validate:"required"`
-	QuestionIDsOrdered     []string           `json:"questionIDsOrdered,omitempty" bson:"questionIDsOrdered" validate:"required"`
-	NCorrectlyAnswered     int                `json:"nCorrectlyAnswered,omitempty" bson:"nCorrectlyAnswered" validate:""`
-	StartedTime            time.Time          `json:"started_time,omitempty" bson:"started_timet"`
-	FinishedTime           time.Time          `json:"finished_time,omitempty" bson:"finished_time"`
-	Mode                   string             `json:"mode,omitempty" bson:"mode" validate:"oneof=practice exam timed-practice"`
+	ID                  string    `json:"id" bson:"_id,omitempty"`
+	Finished            bool      `json:"finished" bson:"finished"`
+	Started             bool      `json:"started" bson:"started"`
+	Name                string    `json:"name" bson:"name"`
+	Tags                []string  `json:"tags" bson:"tags"`
+	SelectedAnswersList [][]int   `json:"selected_answers_list,omitempty" bson:"selected_answers_list" validate:"required"`
+	TakenById           string    `json:"taken_by_id,omitempty" bson:"taken_by_id" validate:"required"`
+	SelectedAnswers     [][]int   `json:"answered,omitempty" bson:"answered"`
+	CurrentQuestionNum  int       `json:"currentQuestionNum,omitempty" bson:"currentQuestionNum" validate:"required"`
+	QuestionIDsOrdered  []string  `json:"questionIDsOrdered,omitempty" bson:"questionIDsOrdered" validate:"required"`
+	NCorrectlyAnswered  int       `json:"nCorrectlyAnswered,omitempty" bson:"nCorrectlyAnswered" validate:""`
+	StartedTime         time.Time `json:"started_time,omitempty" bson:"started_timet"`
+	FinishedTime        time.Time `json:"finished_time,omitempty" bson:"finished_time"`
+	Mode                string    `json:"mode,omitempty" bson:"mode" validate:"oneof=practice exam timed-practice"`
 }
+
+//UserActivity
+//Error Reports
+//Feedback
