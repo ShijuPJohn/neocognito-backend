@@ -19,12 +19,13 @@ import (
 
 func CreateQuestionSet(c *fiber.Ctx) error {
 	type QuestionSetDT0Model struct {
-		Questions   []string `json:"questions" validate:"required"`
-		Subject     string   `json:"subject" validate:"required"`
-		Name        string   `json:"name" validate:"required"`
-		Tags        []string `json:"tags" validate:"required"`
-		Description string   `json:"description" validate:"required"`
-		Exam        string   `json:"exam" validate:"required"`
+		Questions   []string  `json:"questions" validate:"required"`
+		Subject     string    `json:"subject" validate:"required"`
+		Name        string    `json:"name" validate:"required"`
+		Tags        []string  `json:"tags" validate:"required"`
+		MarkList    []float64 `json:"mark_list"`
+		Description string    `json:"description" validate:"required"`
+		Exam        string    `json:"exam" validate:"required"`
 	}
 	var qSetDTO QuestionSetDT0Model
 	user := c.Locals("user").(*jwt.Token)
@@ -52,6 +53,7 @@ func CreateQuestionSet(c *fiber.Ctx) error {
 	q.Subject = qSetDTO.Subject
 	q.Tags = qSetDTO.Tags
 	q.Exam = qSetDTO.Exam
+	q.MarkList = qSetDTO.MarkList
 	var objectIDs []primitive.ObjectID
 	for _, idStr := range qSetDTO.Questions {
 		id, err := primitive.ObjectIDFromHex(idStr)
@@ -88,6 +90,15 @@ func CreateQuestionSet(c *fiber.Ctx) error {
 	}
 	q.QIDList = qIDs
 	q.CorrectAnswerList = correctOptions
+	if len(qSetDTO.MarkList) == 0 {
+		tMarkList := make([]float64, len(qSetDTO.Questions))
+		for i := range tMarkList {
+			tMarkList[i] = 1
+		}
+		q.MarkList = tMarkList
+	} else {
+		q.MarkList = qSetDTO.MarkList
+	}
 
 	insertionResult, err := utils.Mg.Db.Collection("question_set").InsertOne(c.Context(), q)
 	if err != nil {
