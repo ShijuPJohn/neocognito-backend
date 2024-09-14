@@ -38,23 +38,25 @@ type QuestionSet struct {
 	CreatedById       string    `json:"created_by,omitempty" bson:"created_by,omitempty"`
 	EditedByIds       []string  `json:"edited_by,omitempty" bson:"edited_by,omitempty"`
 }
-
+type QuestionAnswerData struct {
+	Correct             []int   `json:"correct_answer_list" bson:"correct_answer_list"`
+	Selected            []int   `json:"selected_answer_list" bson:"selected_answer_list"`
+	QuestionsTotalMark  float64 `json:"questions_total_mark" bson:"questions_total_mark"`
+	QuestionsScoredMark float64 `json:"questions_scored_mark" bson:"questions_scored_mark"`
+}
 type TestSession struct {
-	ID                 string                      `json:"id" bson:"_id,omitempty"`
-	Finished           bool                        `json:"finished" bson:"finished"`
-	Started            bool                        `json:"started" bson:"started"`
-	TakenByID          string                      `json:"taken_by_id,omitempty" bson:"taken_by_id" validate:"required"`
-	QuestionSetID      string                      `json:"question_set_id" bson:"question_set_id"`
-	QuesCaSa           map[string]map[string][]int `json:"ques_ca_sa" bson:"ques_ca_sa"`
-	QIDList            []string                    `json:"qid_list,omitempty" bson:"qid_list" validate:"required"`
-	CorrectAnswerList  [][]int                     `json:"correct_answer_list,omitempty" bson:"correct_answer_list" validate:"required"`
-	SelectedAnswers    [][]int                     `json:"selected_answers,omitempty" bson:"selected_answers"`
-	CurrentQuestionNum int                         `json:"currentQuestionNum,omitempty" bson:"currentQuestionNum" validate:"required"`
-	QuestionIDsOrdered []string                    `json:"questionIDsOrdered,omitempty" bson:"questionIDsOrdered" validate:"required"`
-	NCorrectlyAnswered int                         `json:"nCorrectlyAnswered,omitempty" bson:"nCorrectlyAnswered" validate:""`
-	StartedTime        *time.Time                  `json:"started_time,omitempty" bson:"started_timet"`
-	FinishedTime       *time.Time                  `json:"finished_time,omitempty" bson:"finished_time"`
-	Mode               string                      `json:"mode,omitempty" bson:"mode" validate:"oneof=practice exam timed-practice"`
+	ID                 string                         `json:"id" bson:"_id,omitempty"`
+	Finished           bool                           `json:"finished" bson:"finished"`
+	TakenByID          string                         `json:"taken_by_id,omitempty" bson:"taken_by_id" validate:"required"`
+	QuestionSetID      string                         `json:"question_set_id" bson:"question_set_id"`
+	QuestionAnswerData map[string]*QuestionAnswerData `json:"question_answer_data" bson:"question_answer_data"`
+	CurrentQuestionNum int                            `json:"current_questionNum,omitempty" bson:"current_questionNum" validate:"required"`
+	QuestionIDsOrdered []string                       `json:"question_ids_ordered,omitempty" bson:"question_ids_ordered" validate:"required"`
+	StartedTime        *time.Time                     `json:"started_time,omitempty" bson:"started_time"`
+	FinishedTime       *time.Time                     `json:"finished_time,omitempty" bson:"finished_time"`
+	Mode               string                         `json:"mode,omitempty" bson:"mode" validate:"oneof=practice exam timed-practice"`
+	TotalMarks         float64                        `json:"total_marks" bson:"total_marks"`
+	ScoredMarks        float64                        `json:"scored_marks" bson:"scored_marks"`
 }
 
 //UserActivity
