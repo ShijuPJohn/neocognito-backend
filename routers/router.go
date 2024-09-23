@@ -30,13 +30,14 @@ func SetupRoutes(app *fiber.App) {
 
 	questionSet := api.Group("/questionsets")
 	questionSet.Post("/", middlewares.Protected(), controllers.CreateQuestionSet)
-	questionSet.Get("/", middlewares.Protected(), controllers.GetQuestionSets)
+	questionSet.Get("/", controllers.GetQuestionSets)
 	//questionSet.Patch("/:id", middlewares.Protected(), controllers.EditQuestionSet)
 	//questionSet.Get("/:id", controllers.GetQuestionSetByID)
 	//questionSet.Delete("/:id", middlewares.Protected(), controllers.DeleteQuestionSet)
 	//
 	testSession := api.Group("/test_session")
 	testSession.Post("/", middlewares.Protected(), controllers.CreateTestSession)
-	//qTest.Post("/:id", middlewares.Protected(), controllers.TakeTest)
-	//qTest.Get("/:id", middlewares.Protected(), controllers.GetQTestByID)
+	testSession.Put("/:test_session_id", middlewares.Protected(), controllers.UpdateTestSession)
+	testSession.Get("/:test_session_id", middlewares.Protected(), controllers.GetTestSession)
+	testSession.Put("/finish/:test_session_id", middlewares.Protected(), controllers.FinishTestSession)
 }
