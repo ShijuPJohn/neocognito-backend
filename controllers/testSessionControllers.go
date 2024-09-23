@@ -43,6 +43,9 @@ func CreateTestSession(c *fiber.Ctx) error {
 	testSession := new(models.TestSession)
 	testSession.CurrentQuestionNum = 0
 	tempMapVar := make(map[string]*models.QuestionAnswerData)
+	fmt.Println(len(questionSetVar.QIDList))
+	fmt.Println(len(questionSetVar.CorrectAnswerList))
+	fmt.Println(len(questionSetVar.MarkList))
 	for i, question := range questionSetVar.QIDList {
 		questionAnswerData := new(models.QuestionAnswerData)
 		questionAnswerData.Correct = questionSetVar.CorrectAnswerList[i]
@@ -251,12 +254,12 @@ func GetTestSession(c *fiber.Ctx) error {
 	}
 
 	return c.Status(fiber.StatusOK).JSON(fiber.Map{
-		"status":                 "success",
-		"test_session":           testSession,
-		"current_question":       currentQuestion,
-		"question_ids_ordered":   testSession.QuestionIDsOrdered,
-		"answered_data":          testSession.QuestionAnswerData,
-		"current_question_index": currentQuestionIndex,
+		"status":           "success",
+		"test_session":     testSession,
+		"current_question": currentQuestion,
+		//"question_ids_ordered":   testSession.QuestionIDsOrdered,
+		//"answered_data":          testSession.QuestionAnswerData,
+		//"current_question_index": currentQuestionIndex,
 	})
 }
 
@@ -355,23 +358,17 @@ func CalculateScoredMarks(correctOptions, selectedOptions []int, maxMarks float6
 	for _, option := range correctOptions {
 		correctOptionsMap[option] = true
 	}
-
 	for _, selected := range selectedOptions {
 		if !correctOptionsMap[selected] {
 			return 0
 		}
 	}
-
 	numCorrectOptions := len(correctOptions)
 	numSelectedOptions := len(selectedOptions)
-
-	if numCorrectOptions == 0 {
-		return 0
-	}
-
 	fraction := float64(numSelectedOptions) / float64(numCorrectOptions)
 	return fraction * maxMarks
 }
+
 func shuffleQuestionIDs(input *[]string) []string {
 	rand.Seed(time.Now().UnixNano())
 

@@ -50,7 +50,7 @@ type TestSession struct {
 	TakenByID          string                         `json:"taken_by_id,omitempty" bson:"taken_by_id" validate:"required"`
 	QuestionSetID      string                         `json:"question_set_id" bson:"question_set_id"`
 	QuestionAnswerData map[string]*QuestionAnswerData `json:"question_answer_data" bson:"question_answer_data"`
-	CurrentQuestionNum int                            `json:"current_questionNum,omitempty" bson:"current_questionNum" validate:"required"`
+	CurrentQuestionNum int                            `json:"current_question_num" bson:"current_question_num" validate:"required"`
 	QuestionIDsOrdered []string                       `json:"question_ids_ordered,omitempty" bson:"question_ids_ordered" validate:"required"`
 	StartedTime        *time.Time                     `json:"started_time,omitempty" bson:"started_time"`
 	FinishedTime       *time.Time                     `json:"finished_time,omitempty" bson:"finished_time"`
