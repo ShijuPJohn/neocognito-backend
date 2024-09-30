@@ -45,6 +45,7 @@ type QuestionAnswerData struct {
 	QuestionsScoredMark float64 `json:"questions_scored_mark" bson:"questions_scored_mark"`
 }
 type TestSession struct {
+	//TODO negative marking
 	ID                 string                         `json:"id" bson:"_id,omitempty"`
 	Finished           bool                           `json:"finished" bson:"finished"`
 	TakenByID          string                         `json:"taken_by_id,omitempty" bson:"taken_by_id" validate:"required"`

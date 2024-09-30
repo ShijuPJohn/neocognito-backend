@@ -250,6 +250,7 @@ func GetTestSession(c *fiber.Ctx) error {
 			"options":       question.Options,
 			"question_type": question.QuestionType,
 			"difficulty":    question.Difficulty,
+			"explanation":   question.Explanation,
 		}
 	}
 
