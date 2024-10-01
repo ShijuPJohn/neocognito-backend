@@ -1,17 +1,13 @@
 package controllers
 
 import (
-	"fmt"
 	"github.com/go-playground/validator/v10"
 	"github.com/gofiber/fiber/v2"
 	"github.com/golang-jwt/jwt/v5"
 	"go.mongodb.org/mongo-driver/bson"
-	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo/options"
-	"log"
 	"neocognito-backend/models"
 	"neocognito-backend/utils"
-	"reflect"
 	"strconv"
 	"strings"
 	"time"
@@ -54,42 +50,43 @@ func CreateQuestionSet(c *fiber.Ctx) error {
 	q.Tags = qSetDTO.Tags
 	q.Exam = qSetDTO.Exam
 	q.MarkList = qSetDTO.MarkList
-	var objectIDs []primitive.ObjectID
-	for _, idStr := range qSetDTO.Questions {
-		id, err := primitive.ObjectIDFromHex(idStr)
-		if err != nil {
-			continue
-		}
-		objectIDs = append(objectIDs, id)
-	}
-	projection := bson.M{"id": 1, "correct_options": 1}
-	findOptions := options.Find()
-	findOptions.SetProjection(projection)
+	//var objectIDs []primitive.ObjectID
+	//for _, idStr := range qSetDTO.Questions {
+	//	id, err := primitive.ObjectIDFromHex(idStr)
+	//	if err != nil {
+	//		continue
+	//	}
+	//	objectIDs = append(objectIDs, id)
+	//}
+	//projection := bson.M{"id": 1, "correct_options": 1}
+	//findOptions := options.Find()
+	//findOptions.SetProjection(projection)
+	//
+	//filter := bson.M{"_id": bson.M{"$in": objectIDs}}
+	//fmt.Println("before querying")
+	//cursor, err := utils.Mg.Db.Collection("questions").Find(c.Context(), filter, findOptions)
+	//fmt.Println("after querying")
+	//var results []bson.M
+	//if err := cursor.All(c.Context(), &results); err != nil {
+	//	log.Fatal(err)
+	//}
+	//qIDs := make([]string, 0)
+	//correctOptions := make([][]int, 0)
+	//for _, result := range results {
+	//	qIDString := result["_id"].(primitive.ObjectID).Hex()
+	//	qIDs = append(qIDs, qIDString)
+	//	//correctOptions = append(correctOptions, result["correct_options"].(string))
+	//	fmt.Println(result["correct_options"])
+	//	fmt.Println(reflect.TypeOf(result["correct_options"]))
+	//	var intSlice []int
+	//	for _, i := range result["correct_options"].(primitive.A) {
+	//		intSlice = append(intSlice, int(i.(int32)))
+	//	}
+	//	correctOptions = append(correctOptions, intSlice)
+	//}
 
-	filter := bson.M{"_id": bson.M{"$in": objectIDs}}
-	fmt.Println("before querying")
-	cursor, err := utils.Mg.Db.Collection("questions").Find(c.Context(), filter, findOptions)
-	fmt.Println("after querying")
-	var results []bson.M
-	if err := cursor.All(c.Context(), &results); err != nil {
-		log.Fatal(err)
-	}
-	qIDs := make([]string, 0)
-	correctOptions := make([][]int, 0)
-	for _, result := range results {
-		qIDString := result["_id"].(primitive.ObjectID).Hex()
-		qIDs = append(qIDs, qIDString)
-		//correctOptions = append(correctOptions, result["correct_options"].(string))
-		fmt.Println(result["correct_options"])
-		fmt.Println(reflect.TypeOf(result["correct_options"]))
-		var intSlice []int
-		for _, i := range result["correct_options"].(primitive.A) {
-			intSlice = append(intSlice, int(i.(int32)))
-		}
-		correctOptions = append(correctOptions, intSlice)
-	}
-	q.QIDList = qIDs
-	q.CorrectAnswerList = correctOptions
+	//q.CorrectAnswerList = correctOptions
+	q.QIDList = qSetDTO.Questions
 	if len(qSetDTO.MarkList) == 0 {
 		tMarkList := make([]float64, len(qSetDTO.Questions))
 		for i := range tMarkList {
