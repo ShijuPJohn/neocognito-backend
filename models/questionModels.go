@@ -23,26 +23,26 @@ type Question struct {
 }
 
 type QuestionSet struct {
-	ID                string    `json:"id" bson:"_id,omitempty"`
-	Name              string    `json:"name" bson:"name"`
-	QIDList           []string  `json:"qid_list,omitempty" bson:"qid_list" validate:"required"`
-	CorrectAnswerList [][]int   `json:"correct_answer_list,omitempty" bson:"correct_answer_list" validate:"required"`
-	MarkList          []float64 `json:"mark_list,omitempty" bson:"mark_list" validate:"required"`
-	Subject           string    `json:"subject,omitempty" bson:"subject" validate:"required"`
-	Tags              []string  `json:"tags,omitempty" bson:"tags" validate:"required"`
-	Exam              string    `json:"exam,omitempty" bson:"exam"`
-	TimeDuration      string    `json:"time,omitempty" bson:"time" validate:""`
-	Description       string    `json:"explanation,omitempty" bson:"explanation"`
-	CreatedAt         time.Time `json:"created_at,omitempty" bson:"created_at"`
-	EditedAt          time.Time `json:"edited_at,omitempty" bson:"edited_at"`
-	CreatedById       string    `json:"created_by,omitempty" bson:"created_by,omitempty"`
-	EditedByIds       []string  `json:"edited_by,omitempty" bson:"edited_by,omitempty"`
+	ID           string    `json:"id" bson:"_id,omitempty"`
+	Name         string    `json:"name" bson:"name"`
+	QIDList      []string  `json:"qid_list,omitempty" bson:"qid_list" validate:"required"`
+	MarkList     []float64 `json:"mark_list,omitempty" bson:"mark_list" validate:"required"`
+	Subject      string    `json:"subject,omitempty" bson:"subject" validate:"required"`
+	Tags         []string  `json:"tags,omitempty" bson:"tags" validate:"required"`
+	Exam         string    `json:"exam,omitempty" bson:"exam"`
+	TimeDuration string    `json:"time,omitempty" bson:"time" validate:""`
+	Description  string    `json:"explanation,omitempty" bson:"explanation"`
+	CreatedAt    time.Time `json:"created_at,omitempty" bson:"created_at"`
+	EditedAt     time.Time `json:"edited_at,omitempty" bson:"edited_at"`
+	CreatedById  string    `json:"created_by,omitempty" bson:"created_by,omitempty"`
+	EditedByIds  []string  `json:"edited_by,omitempty" bson:"edited_by,omitempty"`
 }
 type QuestionAnswerData struct {
 	Correct             []int   `json:"correct_answer_list" bson:"correct_answer_list"`
 	Selected            []int   `json:"selected_answer_list" bson:"selected_answer_list"`
 	QuestionsTotalMark  float64 `json:"questions_total_mark" bson:"questions_total_mark"`
 	QuestionsScoredMark float64 `json:"questions_scored_mark" bson:"questions_scored_mark"`
+	Answered            bool    `json:"answered" bson:"answered"`
 }
 type TestSession struct {
 	ID                 string                         `json:"id" bson:"_id,omitempty"`
@@ -57,6 +57,7 @@ type TestSession struct {
 	Mode               string                         `json:"mode,omitempty" bson:"mode" validate:"oneof=practice exam timed-practice"`
 	TotalMarks         float64                        `json:"total_marks" bson:"total_marks"`
 	ScoredMarks        float64                        `json:"scored_marks" bson:"scored_marks"`
+	NegativeMarks      float64                        `json:"negative_marks" bson:"negative_marks"`
 }
 
 //UserActivity
