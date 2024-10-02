@@ -4,9 +4,11 @@ import (
 	"fmt"
 	"github.com/go-playground/validator/v10"
 	"github.com/gofiber/fiber/v2"
+	"github.com/gofiber/fiber/v2/log"
 	"github.com/golang-jwt/jwt/v5"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
+	"go.mongodb.org/mongo-driver/mongo/options"
 	"math/rand"
 	"neocognito-backend/models"
 	"neocognito-backend/utils"
@@ -43,11 +45,11 @@ func CreateTestSession(c *fiber.Ctx) error {
 	err = utils.Mg.Db.Collection("question_set").FindOne(c.Context(), bson.M{"_id": idObject}).Decode(&questionSetVar)
 	testSession := new(models.TestSession)
 	testSession.CurrentQuestionNum = 0
+
 	tempMapVar := make(map[string]*models.QuestionAnswerData)
 	for i, question := range questionSetVar.QIDList {
 		questionAnswerData := new(models.QuestionAnswerData)
 		questionAnswerData.Correct = []int{}
-		questionAnswerData.Selected = make([]int, 0)
 		questionAnswerData.QuestionsTotalMark = questionSetVar.MarkList[i]
 		questionAnswerData.QuestionsScoredMark = 0
 		questionAnswerData.Answered = false
@@ -133,7 +135,7 @@ func UpdateTestSession(c *fiber.Ctx) error {
 		})
 	}
 
-	currentQuestionNum := testSession.CurrentQuestionNum //TODO
+	currentQuestionNum := testSession.CurrentQuestionNum
 	var updateObject bson.M
 	var currentQuestion map[string]interface{} //For adding current question's fields in the response
 	if dto.Action == "answer" {
@@ -206,11 +208,31 @@ func UpdateTestSession(c *fiber.Ctx) error {
 				"error":  "Failed to update the test session" + err.Error(),
 			})
 		}
+		if testSession.Mode == "practice" {
+			currentQuestion = fiber.Map{
+				"id":              question.ID,
+				"question":        question.Question,
+				"options":         question.Options,
+				"question_type":   question.QuestionType,
+				"difficulty":      question.Difficulty,
+				"explanation":     question.Explanation,
+				"correct_options": question.CorrectOptions,
+			}
+		} else {
+			currentQuestion = fiber.Map{
+				"id":            question.ID,
+				"question":      question.Question,
+				"options":       question.Options,
+				"question_type": question.QuestionType,
+				"difficulty":    question.Difficulty,
+				"explanation":   question.Explanation,
+			}
+		}
 
 		return c.Status(fiber.StatusOK).JSON(fiber.Map{
-			"status":           "success",
-			"test_session":     testSession,
-			"current_question": currentQuestion,
+			"status":            "success",
+			"test_session":      testSession,
+			"answered_question": question,
 		})
 
 	} else {
@@ -343,7 +365,7 @@ func GetTestSession(c *fiber.Ctx) error {
 		})
 	}
 	currentQuestionIndex := testSession.CurrentQuestionNum
-	var currentQuestion map[string]interface{}
+	//var currentQuestion map[string]interface{}
 	if currentQuestionIndex < len(testSession.QuestionIDsOrdered) {
 		currentQuestionID := testSession.QuestionIDsOrdered[currentQuestionIndex]
 		questionIDObject, err := primitive.ObjectIDFromHex(currentQuestionID)
@@ -353,6 +375,7 @@ func GetTestSession(c *fiber.Ctx) error {
 				"message": "Invalid test session ID",
 			})
 		}
+
 		var question models.Question
 		err = utils.Mg.Db.Collection("questions").FindOne(c.Context(), bson.M{"_id": questionIDObject}).Decode(&question)
 		if err != nil {
@@ -361,33 +384,69 @@ func GetTestSession(c *fiber.Ctx) error {
 				"message": "Failed to fetch the current question",
 			})
 		}
-		if testSession.Mode == "practice" {
-			currentQuestion = fiber.Map{
-				"id":              question.ID,
-				"question":        question.Question,
-				"options":         question.Options,
-				"question_type":   question.QuestionType,
-				"difficulty":      question.Difficulty,
-				"explanation":     question.Explanation,
-				"correct_options": question.CorrectOptions,
-			}
-		} else {
-			currentQuestion = fiber.Map{
-				"id":            question.ID,
-				"question":      question.Question,
-				"options":       question.Options,
-				"question_type": question.QuestionType,
-				"difficulty":    question.Difficulty,
-				"explanation":   question.Explanation,
-			}
-		}
+
+		//if testSession.Mode == "practice" {
+		//	currentQuestion = fiber.Map{
+		//		"id":              question.ID,
+		//		"question":        question.Question,
+		//		"options":         question.Options,
+		//		"question_type":   question.QuestionType,
+		//		"difficulty":      question.Difficulty,
+		//		"explanation":     question.Explanation,
+		//		"correct_options": question.CorrectOptions,
+		//	}
+		//} else {
+		//	currentQuestion = fiber.Map{
+		//		"id":            question.ID,
+		//		"question":      question.Question,
+		//		"options":       question.Options,
+		//		"question_type": question.QuestionType,
+		//		"difficulty":    question.Difficulty,
+		//		"explanation":   question.Explanation,
+		//	}
+		//}
 
 	}
+	//copied from question set controller function
+	var objectIDs []primitive.ObjectID
+	for _, idStr := range testSession.QuestionIDsOrdered {
+		id, err := primitive.ObjectIDFromHex(idStr)
+		if err != nil {
+			continue
+		}
+		objectIDs = append(objectIDs, id)
+	}
+	projection := bson.M{"id": 1, "correct_options": 1, "question": 1, "question_type": 1, "options": 1, "explanation": 1}
+	findOptions := options.Find()
+	findOptions.SetProjection(projection)
+
+	filter := bson.M{"_id": bson.M{"$in": objectIDs}}
+	cursor, err := utils.Mg.Db.Collection("questions").Find(c.Context(), filter, findOptions)
+	var results []bson.M
+	if err := cursor.All(c.Context(), &results); err != nil {
+		log.Fatal(err)
+	}
+	//for _, result := range results {
+	//	qIDString := result["_id"].(primitive.ObjectID).Hex()
+	//	qIDs = append(qIDs, qIDString)
+	//	//correctOptions = append(correctOptions, result["correct_options"].(string))
+	//	fmt.Println(result["correct_options"])
+	//	fmt.Println(reflect.TypeOf(result["correct_options"]))
+	//	var intSlice []int
+	//	for _, i := range result["correct_options"].(primitive.A) {
+	//		intSlice = append(intSlice, int(i.(int32)))
+	//	}
+	//	correctOptions = append(correctOptions, intSlice)
+	//}
+
+	//q.CorrectAnswerList = correctOptions
 
 	return c.Status(fiber.StatusOK).JSON(fiber.Map{
-		"status":           "success",
-		"test_session":     testSession,
-		"current_question": currentQuestion,
+		"status":                 "success",
+		"test_session":           testSession,
+		"current_question_index": testSession.CurrentQuestionNum,
+		"current_question_id":    testSession.QuestionIDsOrdered[testSession.CurrentQuestionNum],
+		"questions":              results,
 	})
 }
 
