@@ -1,6 +1,7 @@
 package controllers
 
 import (
+	"fmt"
 	"github.com/go-playground/validator/v10"
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/fiber/v2/log"
@@ -125,8 +126,8 @@ func UpdateTestSession(c *fiber.Ctx) error {
 		})
 	}
 	if testSession.Finished {
-		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
-			"status":  "error",
+		return c.Status(fiber.StatusOK).JSON(fiber.Map{
+			"status":  "finished",
 			"message": "Test session is already finished",
 		})
 	}
@@ -235,14 +236,7 @@ func GetTestSession(c *fiber.Ctx) error {
 			"message": "Unauthorized",
 		})
 	}
-	if testSession.Finished {
-		return c.Status(fiber.StatusOK).JSON(fiber.Map{
-			"status":       "test finished",
-			"test_session": testSession,
-		})
-	}
 	currentQuestionIndex := testSession.CurrentQuestionNum
-	//var currentQuestion map[string]interface{}
 	if currentQuestionIndex < len(testSession.QuestionIDsOrdered) {
 		currentQuestionID := testSession.QuestionIDsOrdered[currentQuestionIndex]
 		questionIDObject, err := primitive.ObjectIDFromHex(currentQuestionID)
@@ -261,30 +255,7 @@ func GetTestSession(c *fiber.Ctx) error {
 				"message": "Failed to fetch the current question",
 			})
 		}
-
-		//if testSession.Mode == "practice" {
-		//	currentQuestion = fiber.Map{
-		//		"id":              question.ID,
-		//		"question":        question.Question,
-		//		"options":         question.Options,
-		//		"question_type":   question.QuestionType,
-		//		"difficulty":      question.Difficulty,
-		//		"explanation":     question.Explanation,
-		//		"correct_options": question.CorrectOptions,
-		//	}
-		//} else {
-		//	currentQuestion = fiber.Map{
-		//		"id":            question.ID,
-		//		"question":      question.Question,
-		//		"options":       question.Options,
-		//		"question_type": question.QuestionType,
-		//		"difficulty":    question.Difficulty,
-		//		"explanation":   question.Explanation,
-		//	}
-		//}
-
 	}
-	//copied from question set controller function
 	var objectIDs []primitive.ObjectID
 	for _, idStr := range testSession.QuestionIDsOrdered {
 		id, err := primitive.ObjectIDFromHex(idStr)
@@ -303,20 +274,6 @@ func GetTestSession(c *fiber.Ctx) error {
 	if err := cursor.All(c.Context(), &results); err != nil {
 		log.Fatal(err)
 	}
-	//for _, result := range results {
-	//	qIDString := result["_id"].(primitive.ObjectID).Hex()
-	//	qIDs = append(qIDs, qIDString)
-	//	//correctOptions = append(correctOptions, result["correct_options"].(string))
-	//	fmt.Println(result["correct_options"])
-	//	fmt.Println(reflect.TypeOf(result["correct_options"]))
-	//	var intSlice []int
-	//	for _, i := range result["correct_options"].(primitive.A) {
-	//		intSlice = append(intSlice, int(i.(int32)))
-	//	}
-	//	correctOptions = append(correctOptions, intSlice)
-	//}
-
-	//q.CorrectAnswerList = correctOptions
 
 	return c.Status(fiber.StatusOK).JSON(fiber.Map{
 		"status":                 "success",
@@ -328,6 +285,7 @@ func GetTestSession(c *fiber.Ctx) error {
 }
 
 func FinishTestSession(c *fiber.Ctx) error {
+	fmt.Println("test finish called")
 	testSessionID := c.Params("test_session_id")
 	if testSessionID == "" {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
@@ -404,6 +362,7 @@ func FinishTestSession(c *fiber.Ctx) error {
 
 	return c.Status(fiber.StatusOK).JSON(fiber.Map{
 		"status":          "success",
+		"started_time":    testSession.StartedTime,
 		"total_marks":     testSession.TotalMarks,
 		"scored_marks":    testSession.ScoredMarks,
 		"test_session_id": testSession.ID,
@@ -440,104 +399,8 @@ func shuffleQuestionIDs(input *[]string) []string {
 	}
 	return *input
 }
-
-//	func ResumeQTest(c *fiber.Ctx) error {
-//		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"status": "error", "error": ""})
-//	}
-//
-//	func GetQTestByID(c *fiber.Ctx) error {
-//		qTestId := c.Params("id")
-//		idObject, err := primitive.ObjectIDFromHex(qTestId)
-//		if err != nil {
-//			return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"status": "error", "error": err.Error()})
-//		}
-//		qTest := new(models.QTest)
-//		err = utils.Mg.Db.Collection("q_test").FindOne(c.Context(), bson.M{"_id": idObject}).Decode(&qTest)
-//		if err != nil {
-//			return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"status": "error", "error": err.Error()})
-//		}
-//		return c.Status(fiber.StatusOK).JSON(fiber.Map{"status": "success", "qTest": qTest})
-//	}
-//
-//	func TakeTest(c *fiber.Ctx) error {
-//		qTestId := c.Params("id")
-//		type Temp struct {
-//			Question string `json:"question" validate:"required"`
-//			Answer   string `json:"answer" validate:"required"`
-//		}
-//
-//		t := new(Temp)
-//		if err := c.BodyParser(&t); err != nil {
-//			return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
-//				"status":  "error",
-//				"message": "Bad Request",
-//				"error":   err.Error(),
-//			})
-//		}
-//		selectedAnswer, err := strconv.Atoi(t.Answer)
-//		idObject, err := primitive.ObjectIDFromHex(qTestId)
-//		if err != nil {
-//			return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"status": "error", "error": err.Error()})
-//		}
-//		qTest := new(models.QTest)
-//		qIdObject, err := primitive.ObjectIDFromHex(t.Question)
-//
-//		if err != nil {
-//			return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"status": "error", "error": err.Error()})
-//		}
-//		question := new(models.Question)
-//		err = utils.Mg.Db.Collection("q_test").FindOne(c.Context(), bson.M{"_id": idObject}).Decode(&qTest)
-//		if err != nil {
-//			return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"status": "error", "error": err.Error()})
-//		}
-//		if qTest.Finished {
-//			return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"status": "error", "error": "Test already finished"})
-//		}
-//		err = utils.Mg.Db.Collection("questions").FindOne(c.Context(), bson.M{"_id": qIdObject}).Decode(&question)
-//		if err != nil {
-//			return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"status": "error", "error": err.Error()})
-//		}
-//		var answerSlice []int
-//		answerSlice = append(answerSlice, selectedAnswer)
-//		answerSlice = append(answerSlice, question.CorrectOptions)
-//		user := c.Locals("user").(*jwt.Token)
-//		claims := user.Claims.(jwt.MapClaims)
-//		if qTest.TakenById != claims["id"].(string) {
-//			return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{"status": "unauthorized"})
-//		}
-//
-//		qTest.AllQuestionsIDs[t.Question] = answerSlice
-//
-//		update := bson.M{"allQuestionsId": qTest.AllQuestionsIDs}
-//		filter := bson.M{"_id": idObject}
-//		if selectedAnswer == question.CorrectOptions {
-//			update["nCorrectlyAnswered"] = qTest.NCorrectlyAnswered + 1
-//		}
-//		updateQuery := bson.M{"$set": update}
-//		result, err := utils.Mg.Db.Collection("q_test").UpdateOne(c.Context(), filter, updateQuery)
-//		if err != nil {
-//			return handleError(c, fiber.StatusBadRequest, err.Error())
-//		}
-//		if qTest.Mode != "exam" {
-//			totalScoreSoFar := 0
-//			for question := range qTest.AllQuestionsIDs {
-//				if qTest.AllQuestionsIDs[question][0] == qTest.AllQuestionsIDs[question][1] && qTest.AllQuestionsIDs[question][0] != 0 {
-//					totalScoreSoFar++
-//				}
-//			}
-//			return c.Status(fiber.StatusOK).JSON(fiber.Map{"status": "success", "result": result, "totalScoreSoFar": totalScoreSoFar})
-//
-//		}
-//
-//		return c.Status(fiber.StatusOK).JSON(fiber.Map{"status": "success", "result": result})
-//
-// }
-//
-// //	func finishQTest(c *fiber.Ctx) error {
-// //		qTestId := c.Params("id")
-// //		qTest := new(models.QTest)
-// //		qTestIdObject,err := primitive.ObjectIDFromHex(qTestId)
-// //		if err != nil {
-// //			return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"status": "error", "error": err.Error()})
-// //		}
-// //	}
+func GetTestSessionByUserID(c *fiber.Ctx) error {
+	return c.Status(fiber.StatusOK).JSON(fiber.Map{
+		"status": "success",
+	})
+}
