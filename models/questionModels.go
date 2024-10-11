@@ -47,6 +47,7 @@ type QuestionAnswerData struct {
 type TestSession struct {
 	ID                 string                         `json:"id" bson:"_id,omitempty"`
 	Finished           bool                           `json:"finished" bson:"finished"`
+	QSetName           string                         `json:"qset_name" bson:"qset_name"`
 	TakenByID          string                         `json:"taken_by_id,omitempty" bson:"taken_by_id" validate:"required"`
 	QuestionSetID      string                         `json:"question_set_id" bson:"question_set_id"`
 	QuestionAnswerData map[string]*QuestionAnswerData `json:"question_answer_data" bson:"question_answer_data"`
