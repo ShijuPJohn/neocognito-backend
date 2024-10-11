@@ -43,8 +43,12 @@ func CreateTestSession(c *fiber.Ctx) error {
 	}
 	questionSetVar := new(models.QuestionSet)
 	err = utils.Mg.Db.Collection("question_set").FindOne(c.Context(), bson.M{"_id": idObject}).Decode(&questionSetVar)
+	if err != nil {
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"status": "error", "error": err.Error()})
+	}
 	testSession := new(models.TestSession)
 	testSession.CurrentQuestionNum = 0
+	testSession.QSetName = questionSetVar.Name
 
 	tempMapVar := make(map[string]*models.QuestionAnswerData)
 	for i, question := range questionSetVar.QIDList {
@@ -363,6 +367,7 @@ func FinishTestSession(c *fiber.Ctx) error {
 	return c.Status(fiber.StatusOK).JSON(fiber.Map{
 		"status":          "success",
 		"started_time":    testSession.StartedTime,
+		"finished_time":   testSession.FinishedTime,
 		"total_marks":     testSession.TotalMarks,
 		"scored_marks":    testSession.ScoredMarks,
 		"test_session_id": testSession.ID,
